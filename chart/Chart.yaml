@@ -1,0 +1,14 @@
+apiVersion: v2
+name: webhook-site
+description: Helm chart for webhook.site (OpenShift-ready, uses Route instead of Ingress)
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - webhook-site
+  - webhook
+  - openshift
+sources:
+  - https://github.com/webhooksite/webhook.site
+maintainers:
+  - name: smallcopse

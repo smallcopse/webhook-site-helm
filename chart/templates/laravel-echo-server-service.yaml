@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-echo-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: laravel-echo-server
+    {{- include "webhook-site.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: laravel-echo-server
+  ports:
+    - port: {{ .Values.echoServer.service.port }}
+      targetPort: 6001
+      protocol: TCP

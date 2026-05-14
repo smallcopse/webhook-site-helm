@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-echo-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: laravel-echo-server
+    {{- include "webhook-site.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.echoServer.replicas }}
+  selector:
+    matchLabels:
+      app: laravel-echo-server
+  template:
+    metadata:
+      labels:
+        app: laravel-echo-server
+    spec:
+      containers:
+        - name: laravel-echo-server
+          image: "{{ .Values.echoServer.image.repository }}:{{ .Values.echoServer.image.tag }}"
+          imagePullPolicy: {{ .Values.echoServer.image.pullPolicy }}
+          ports:
+            - containerPort: 6001
+              protocol: TCP
+          env:
+            {{- range $key, $val := .Values.echoServer.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          {{- with .Values.echoServer.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      restartPolicy: Always
