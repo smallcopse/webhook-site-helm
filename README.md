@@ -74,24 +74,23 @@ graph TD
 oc new-project webhook-site
 ```
 
-### 2. APP_KEY の生成
+### 2. APP_KEY の生成（任意）
 
-Laravel アプリに必要な 32 文字のアプリキーを生成します。
+`APP_KEY` は省略可能です。省略した場合、チャートが初回インストール時に `base64:` 形式の 32 バイトランダムキーを自動生成して Secret に保存します。`helm upgrade` 以降は既存 Secret の値を使い回すため、キーがローテーションされることはありません。
+
+明示的に指定したい場合は以下で生成できます。
 
 ```bash
+# PHP が使える場合
 php artisan key:generate --show
-# 例: base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=
-```
 
-PHP が手元にない場合は以下のワンライナーで代替できます。
-
-```bash
+# openssl で代替
 echo "base64:$(openssl rand -base64 32)"
 ```
 
 ### 3. Helm インストール
 
-`APP_KEY` は Kubernetes Secret として管理されます。`APP_URL` は以下の優先順位で自動生成されるため、個別に指定する必要はありません。
+`APP_KEY` は Kubernetes Secret として管理されます。`APP_URL` はどちらも以下の優先順位で自動生成されるため、最小構成では `APP_KEY` の指定すら不要です。
 
 | 優先度 | 条件 | APP_URL の値 |
 |---|---|---|
@@ -142,7 +141,7 @@ helm install webhook-site ./chart \
 | キー | デフォルト | 説明 |
 |---|---|---|
 | `namespace` | `webhook-site` | デプロイ先 Namespace |
-| `webhook.env.APP_KEY` | `""` | Laravel アプリキー（必須）。Secret に格納される |
+| `webhook.env.APP_KEY` | `""` | Laravel アプリキー。空の場合は初回インストール時に自動生成 |
 | `webhook.existingSecret` | `""` | 既存 Secret 名。指定するとチャートは Secret を作成しない |
 | `webhook.appUrl` | `""` | APP_URL を明示指定。省略時は `route.host` → IngressController の順で自動生成 |
 | `webhook.env.APP_ENV` | `production` | Laravel 環境 |

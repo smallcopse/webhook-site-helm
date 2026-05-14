@@ -23,7 +23,9 @@ webhook:
   env:
     APP_ENV: production
     APP_DEBUG: "false"
-    ## Used when existingSecret is empty. Generate with: php artisan key:generate --show
+    ## Laravel app key. Used when existingSecret is empty.
+    ## Leave empty to auto-generate on first install (base64-encoded 32 random bytes).
+    ## Equivalent to: php artisan key:generate --show
     APP_KEY: ""
     DB_CONNECTION: sqlite
     BROADCAST_DRIVER: redis
