@@ -116,7 +116,6 @@ Route ホスト名を OpenShift に自動割り当てさせる場合は `route.h
 |---|---|---|
 | `namespace` | `webhook-site` | デプロイ先 Namespace |
 | `webhook.env.APP_KEY` | `""` | Laravel アプリキー（必須） |
-| `webhook.env.APP_URL` | `""` | アプリの公開 URL（必須） |
 | `webhook.env.APP_ENV` | `production` | Laravel 環境 |
 | `webhook.env.APP_DEBUG` | `"false"` | デバッグモード |
 | `webhook.replicas` | `1` | webhook-site Pod 数 |

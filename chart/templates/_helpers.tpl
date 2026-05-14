@@ -13,6 +13,18 @@ Create a default fully qualified app name.
 {{- end }}
 
 {{/*
+Derive APP_URL from route settings.
+Uses https:// when TLS is enabled, http:// otherwise.
+*/}}
+{{- define "webhook-site.appUrl" -}}
+{{- if .Values.route.tls.enabled -}}
+https://{{ .Values.route.host }}
+{{- else -}}
+http://{{ .Values.route.host }}
+{{- end -}}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "webhook-site.labels" -}}

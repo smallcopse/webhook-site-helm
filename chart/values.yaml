@@ -16,7 +16,6 @@ webhook:
     APP_DEBUG: "false"
     ## Set a 32-character random string. Generate with: php artisan key:generate --show
     APP_KEY: ""
-    APP_URL: ""
     DB_CONNECTION: sqlite
     BROADCAST_DRIVER: redis
     CACHE_DRIVER: redis
