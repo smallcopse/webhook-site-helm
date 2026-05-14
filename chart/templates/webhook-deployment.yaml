@@ -26,8 +26,13 @@ spec:
           env:
             - name: APP_URL
               value: {{ include "webhook-site.appUrl" . | quote }}
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.webhook.existingSecret | default "webhook-site-secret" }}
+                  key: APP_KEY
             {{- range $key, $val := .Values.webhook.env }}
-            {{- if ne $key "APP_URL" }}
+            {{- if and (ne $key "APP_URL") (ne $key "APP_KEY") }}
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end }}

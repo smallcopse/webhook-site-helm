@@ -91,10 +91,11 @@ echo "base64:$(openssl rand -base64 32)"
 
 ### 3. Helm インストール
 
+`APP_KEY` は Kubernetes Secret として管理されます。`APP_URL` は `route.host` と `route.tls.enabled` から自動生成されるため、個別に指定する必要はありません。
+
 ```bash
 helm install webhook-site ./chart \
   --set webhook.env.APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx= \
-  --set webhook.env.APP_URL=https://webhook.apps.mycluster.example.com \
   --set route.host=webhook.apps.mycluster.example.com \
   --set route.tls.enabled=true
 ```
@@ -104,18 +105,35 @@ TLS なしで試す場合（開発用）:
 ```bash
 helm install webhook-site ./chart \
   --set webhook.env.APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx= \
-  --set webhook.env.APP_URL=http://webhook.apps.mycluster.example.com \
   --set route.host=webhook.apps.mycluster.example.com
 ```
 
 Route ホスト名を OpenShift に自動割り当てさせる場合は `route.host` を省略できます。
 
+#### 既存の Secret を使う場合
+
+Vault や External Secrets Operator などで Secret を別途管理している場合は、`webhook.existingSecret` に Secret 名を指定します。この場合、チャートは Secret を作成しません。
+
+```bash
+# Secret を事前に作成
+oc create secret generic my-webhook-secret --from-literal=APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=
+
+# existingSecret を指定してインストール
+helm install webhook-site ./chart \
+  --set webhook.existingSecret=my-webhook-secret \
+  --set route.host=webhook.apps.mycluster.example.com \
+  --set route.tls.enabled=true
+```
+
 ## 主な values 一覧
 
 | キー | デフォルト | 説明 |
 |---|---|---|
+| キー | デフォルト | 説明 |
+|---|---|---|
 | `namespace` | `webhook-site` | デプロイ先 Namespace |
-| `webhook.env.APP_KEY` | `""` | Laravel アプリキー（必須） |
+| `webhook.env.APP_KEY` | `""` | Laravel アプリキー（必須）。Secret に格納される |
+| `webhook.existingSecret` | `""` | 既存 Secret 名。指定するとチャートは Secret を作成しない |
 | `webhook.env.APP_ENV` | `production` | Laravel 環境 |
 | `webhook.env.APP_DEBUG` | `"false"` | デバッグモード |
 | `webhook.replicas` | `1` | webhook-site Pod 数 |

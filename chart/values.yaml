@@ -11,10 +11,13 @@ webhook:
   service:
     port: 8084
     targetPort: 80
+  ## Name of an existing Secret with key APP_KEY.
+  ## If set, the chart will NOT create a Secret and will use this instead.
+  existingSecret: ""
   env:
     APP_ENV: production
     APP_DEBUG: "false"
-    ## Set a 32-character random string. Generate with: php artisan key:generate --show
+    ## Used when existingSecret is empty. Generate with: php artisan key:generate --show
     APP_KEY: ""
     DB_CONNECTION: sqlite
     BROADCAST_DRIVER: redis
