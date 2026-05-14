@@ -24,8 +24,11 @@ spec:
             - containerPort: 80
               protocol: TCP
           env:
+            {{- $appUrl := include "webhook-site.appUrl" . }}
+            {{- if $appUrl }}
             - name: APP_URL
-              value: {{ include "webhook-site.appUrl" . | quote }}
+              value: {{ $appUrl | quote }}
+            {{- end }}
             - name: APP_KEY
               valueFrom:
                 secretKeyRef:

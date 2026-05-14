@@ -91,24 +91,36 @@ echo "base64:$(openssl rand -base64 32)"
 
 ### 3. Helm インストール
 
-`APP_KEY` は Kubernetes Secret として管理されます。`APP_URL` は `route.host` と `route.tls.enabled` から自動生成されるため、個別に指定する必要はありません。
+`APP_KEY` は Kubernetes Secret として管理されます。`APP_URL` は以下の優先順位で自動生成されるため、個別に指定する必要はありません。
+
+| 優先度 | 条件 | APP_URL の値 |
+|---|---|---|
+| 1 | `webhook.appUrl` を指定 | その値をそのまま使用 |
+| 2 | `route.host` を指定 | `http(s)://route.host` |
+| 3 | 両方とも空 | OpenShift IngressController を参照して自動構築 |
+
+**自動構築される URL の形式（優先度 3 の場合）:**
+
+```
+http(s)://webhook-<namespace>.<IngressController の apps ドメイン>
+# 例: http://webhook-webhook-site.apps.mycluster.example.com
+```
+
+`route.host` は省略可能です。省略した場合は OpenShift がホスト名を自動割り当てし、チャートも IngressController から同じホスト名を導出して `APP_URL` に設定します。
 
 ```bash
+# route.host を指定する場合（TLS あり）
 helm install webhook-site ./chart \
   --set webhook.env.APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx= \
   --set route.host=webhook.apps.mycluster.example.com \
   --set route.tls.enabled=true
-```
 
-TLS なしで試す場合（開発用）:
-
-```bash
+# route.host を省略する場合（IngressController から APP_URL を自動取得）
 helm install webhook-site ./chart \
-  --set webhook.env.APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx= \
-  --set route.host=webhook.apps.mycluster.example.com
+  --set webhook.env.APP_KEY=base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=
 ```
 
-Route ホスト名を OpenShift に自動割り当てさせる場合は `route.host` を省略できます。
+> **注意:** `helm template`（オフラインレンダリング）では `lookup` が無効なため、APP_URL は空になります。その場合は `webhook.appUrl` で明示指定してください。
 
 #### 既存の Secret を使う場合
 
@@ -129,11 +141,10 @@ helm install webhook-site ./chart \
 
 | キー | デフォルト | 説明 |
 |---|---|---|
-| キー | デフォルト | 説明 |
-|---|---|---|
 | `namespace` | `webhook-site` | デプロイ先 Namespace |
 | `webhook.env.APP_KEY` | `""` | Laravel アプリキー（必須）。Secret に格納される |
 | `webhook.existingSecret` | `""` | 既存 Secret 名。指定するとチャートは Secret を作成しない |
+| `webhook.appUrl` | `""` | APP_URL を明示指定。省略時は `route.host` → IngressController の順で自動生成 |
 | `webhook.env.APP_ENV` | `production` | Laravel 環境 |
 | `webhook.env.APP_DEBUG` | `"false"` | デバッグモード |
 | `webhook.replicas` | `1` | webhook-site Pod 数 |
@@ -147,7 +158,13 @@ helm install webhook-site ./chart \
 
 ## デプロイ後のアクセス方法
 
-`route.host` に設定したホスト名をベースに以下の URL を使用します。
+割り当てられたホスト名は以下で確認できます。
+
+```bash
+oc get route webhook -n webhook-site -o jsonpath='{.spec.host}'
+```
+
+そのホスト名をベースに以下の URL を使用します。
 
 ### ブラウザでアクセス
 

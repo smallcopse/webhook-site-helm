@@ -14,13 +14,26 @@ Create a default fully qualified app name.
 
 {{/*
 Derive APP_URL from route settings.
-Uses https:// when TLS is enabled, http:// otherwise.
+Priority:
+  1. webhook.appUrl (explicit override)
+  2. route.host     (explicit hostname)
+  3. IngressController lookup → auto-assigned OpenShift hostname
+       format: <route-name>-<namespace>.<ingresscontroller.status.domain>
+  4. empty string   (APP_URL env var is omitted from the Deployment)
 */}}
 {{- define "webhook-site.appUrl" -}}
-{{- if .Values.route.tls.enabled -}}
-https://{{ .Values.route.host }}
+{{- $scheme := "http" -}}
+{{- if .Values.route.tls.enabled -}}{{- $scheme = "https" -}}{{- end -}}
+{{- if .Values.webhook.appUrl -}}
+{{ .Values.webhook.appUrl }}
+{{- else if .Values.route.host -}}
+{{ $scheme }}://{{ .Values.route.host }}
 {{- else -}}
-http://{{ .Values.route.host }}
+{{- $ic := lookup "operator.openshift.io/v1" "IngressController" "openshift-ingress-operator" "default" -}}
+{{- if and $ic $ic.status $ic.status.domain -}}
+{{- $host := printf "webhook-%s.%s" .Values.namespace $ic.status.domain -}}
+{{ $scheme }}://{{ $host }}
+{{- end -}}
 {{- end -}}
 {{- end }}
 

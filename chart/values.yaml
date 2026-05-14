@@ -14,6 +14,12 @@ webhook:
   ## Name of an existing Secret with key APP_KEY.
   ## If set, the chart will NOT create a Secret and will use this instead.
   existingSecret: ""
+  ## Override APP_URL explicitly.
+  ## When left empty the chart auto-derives it in this order:
+  ##   1. route.host  (if set)
+  ##   2. OpenShift IngressController lookup → webhook-<namespace>.<apps-domain>
+  ## Set this only when auto-detection is not desired.
+  appUrl: ""
   env:
     APP_ENV: production
     APP_DEBUG: "false"
